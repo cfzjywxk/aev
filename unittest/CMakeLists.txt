@@ -1,0 +1,5 @@
+include_directories(${PROJECT_SOURCE_DIR}/src)
+set(APP_SRC testSampleClass.cpp)
+LINK_DIRECTORIES(${PROJECT_SOURCE_DIR}/src)
+add_executable(testSampleClass ${APP_SRC})
+target_link_libraries(testSampleClass gtest gtest_main pthread libaev.a)
