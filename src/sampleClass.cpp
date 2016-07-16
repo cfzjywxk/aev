@@ -2,5 +2,5 @@
 
 int sampleClass::getPlusOne()
 {
-  return value_ + 2;
+  return value_ + 1;
 }
