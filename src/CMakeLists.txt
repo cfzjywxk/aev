@@ -1,4 +1,5 @@
 set(LIB_SRC sampleClass.cpp)
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/lib")
 
 if(1)
   add_library(aev_static STATIC ${LIB_SRC})

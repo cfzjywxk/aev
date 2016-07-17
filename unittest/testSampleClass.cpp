@@ -4,18 +4,23 @@
 
 #include <iostream>
 #include <gtest/gtest.h>
-#include "../src/sampleClass.h"
+#include "sampleClass.h"
+#include "lib/tblog.h"
 
 class testClass : public testing::Test {
-
+	virtual void SetUp() {
+		TBSYS_LOG(INFO, "testClass setup function executed");
+	}
 };
 
 TEST_F(testClass, Test1)
 {
   sampleClass obj;
   EXPECT_EQ(1, obj.getPlusOne());
+	TBSYS_LOG(INFO, "testClass first test finished");
   sampleClass obj2(10);
   EXPECT_EQ(11, obj2.getPlusOne());
+	TBSYS_LOG(INFO, "testClass second test finished");
 }
 
 int main(int argc, char * argv[])
