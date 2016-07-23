@@ -16,7 +16,7 @@
 
 ev_loop::ev_loop() :
 		ev_backend_fd_(-1), ev_backended_(false), backend_mintime(0), epoll_events(
-		NULL), epoll_eventmax(0), ev_timestamp_(0), loop_done_(false), fdchanges_(), fdmap_() {
+		NULL), epoll_eventmax(0), epoll_epermcnt(false), ev_timestamp_(0), loop_done_(false), fdchanges_(), fdmap_() {
 	// TODO Auto-generated constructor stub
 
 }
@@ -49,7 +49,7 @@ int ev_loop::epoll_backend(int &backended_fd, bool &res)
 
 	  backend_mintime = 1e-3; /* epoll does sometimes return early, this is just to avoid the worst */
 	  epoll_eventmax = 64; /* initial number of events receivable per poll */
-	  if ((EV_SUCCESS != (ret = tc_malloc(sizeof(struct epoll_event), epoll_events)))) {
+	  if ((NULL == (epoll_events = (struct epoll_event *)(tc_malloc(sizeof(struct epoll_event)))))) {
 	  	TBSYS_LOG(ERROR, "alloc %ld mem for epoll_event failed ret=%d\n", sizeof(struct epoll_event), ret);
 	  }
   }
@@ -173,7 +173,7 @@ int ev_loop::run()
 		//3. execute callback function
 		if (EV_SUCCESS != (ret = fd_reify())) {
 			TBSYS_LOG(WARN, "fd_reify failed ret=%d\n", ret);
-		} else if (EV_SUCCESS != (ret = polling())) {
+		} else if (EV_SUCCESS != (ret = polling(0.))) {
 			TBSYS_LOG(WARN, "polling failed ret=%d\n", ret);
 		} else if (EV_SUCCESS != (ret = invoke_pending())) {
 			TBSYS_LOG(WARN, "invoke pending failed ret=%d\n", ret);
@@ -199,16 +199,15 @@ int ev_loop::fd_change(int fd, int revents)
 {
 	//TODO
 	int ret = EV_SUCCESS;
-	fdchanges_.push_back(fd);
+	fdchanges_.push(fd);
 	return ret;
 }
 
 int ev_loop::fd_reify()
 {
 	int ret = EV_SUCCESS;
-	int fdchanges_cnt = fdchanges_.size();
-	for (int i = 0; i < fdchanges_cnt; ++i) {
-		int fd = fdchanges_[i];
+	while (!fdchanges_.empty() && EV_SUCCESS == ret) {
+		int fd = fdchanges_.front();
 		anfd *an_fd = NULL;
 		if (fdmap_.count(fd) == 0) {
 			NEW(anfd, an_fd, sizeof(anfd));
@@ -241,19 +240,121 @@ int ev_loop::fd_reify()
 				}
 			}
 		}
+		if (EV_SUCCESS == ret) {
+			fdchanges_.pop();
+		}
 	}
 	return ret;
 }
 
 int ev_loop::backend_modify(int fd, unsigned char o_events, unsigned char cur_events)
 {
-	int ret = EV_SUCCESS;
-	return ret;
+	return epoll_modify(fd, o_events, cur_events);
 }
 
-int ev_loop::polling()
+int ev_loop::polling(double timeout) {
+	return epoll_poll(timeout);
+}
+int ev_loop::epoll_poll(double timeout)
 {
 	int ret = EV_SUCCESS;
+	int i = 0;
+  int eventcnt = 0;
+
+  if ((epoll_epermcnt)) {
+    timeout = 0.;
+  }
+
+  /* epoll wait times cannot be larger than (LONG_MAX - 999UL) / HZ msecs, which is below */
+  /* the default libev max wait time, however. */
+  //EV_RELEASE_CB;
+  eventcnt = epoll_wait(ev_backend_fd_, epoll_events, epoll_eventmax, timeout * 1e3);
+  //EV_ACQUIRE_CB;
+
+	if ((eventcnt < 0)) {
+		ret = EV_EPOLL_FAIL;
+		if (errno != EINTR) {
+			TBSYS_LOG(ERROR, "fatal error epoll error errno=%d", errno);
+			abort();
+		}
+	} else {
+		for (i = 0; EV_SUCCESS == ret && i < eventcnt; ++i) {
+			struct epoll_event *ev = epoll_events + i;
+
+			int fd = (uint32_t) ev->data.u64; /* mask out the lower 32 bits */
+			anfd *afd = NULL;
+			if (fdmap_.count(fd) == 0) {
+				ret = EV_INVALID_ARGS;
+				continue;
+			} else {
+				afd = fdmap_.at(fd);
+			}
+			int want = afd->events_;
+			int got = (ev->events & (EPOLLOUT | EPOLLERR | EPOLLHUP) ? EV_WRITE : 0)
+					| (ev->events & (EPOLLIN | EPOLLERR | EPOLLHUP) ? EV_READ : 0);
+
+			/*
+			 * check for spurious notification.
+			 * this only finds spurious notifications on egen updates
+			 * other spurious notifications will be found by epoll_ctl, below
+			 * we assume that fd is always in range, as we never shrink the anfds array
+			 */
+			if (((uint32_t) afd->egen_ != (uint32_t) (ev->data.u64 >> 32))) {
+				/* recreate kernel state */
+				//postfork |= 2; ray
+				continue;
+			}
+
+			if ((got & ~want)) {
+				afd->emask_ = want;
+
+				/*
+				 * we received an event but are not interested in it, try mod or del
+				 * this often happens because we optimistically do not unregister fds
+				 * when we are no longer interested in them, but also when we get spurious
+				 * notifications for fds from another process. this is partially handled
+				 * above with the gencounter check (== our fd is not the event fd), and
+				 * partially here, when epoll_ctl returns an error (== a child has the fd
+				 * but we closed it).
+				 */
+				ev->events = (want & EV_READ ? EPOLLIN : 0)
+						| (want & EV_WRITE ? EPOLLOUT : 0);
+
+				/* pre-2.6.9 kernels require a non-null pointer with EPOLL_CTL_DEL, */
+				/* which is fortunately easy to do for us. */
+				if (epoll_ctl(ev_backend_fd_, want ? EPOLL_CTL_MOD : EPOLL_CTL_DEL, fd,
+						ev)) {
+					//postfork |= 2; /* an error occurred, recreate kernel state */ ray
+					continue;
+				}
+			}
+			//TODO
+			//fd_event(fd, got);
+		}
+
+		/* if the receive array was full, increase its size */
+		if ((eventcnt == epoll_eventmax)) {
+			tc_free(epoll_events);
+			epoll_eventmax = array_nextsize(sizeof(struct epoll_event),
+					epoll_eventmax, epoll_eventmax + 1);
+			epoll_events = (struct epoll_event *) (tc_malloc(
+					sizeof(struct epoll_event) * epoll_eventmax));
+		}
+
+		/* now synthesize events for all fds where epoll fails, while select works... */
+		/* TODO check this later
+		for (i = epoll_epermcnt; i--;) {
+			int fd = epoll_eperms[i];
+			unsigned char events = anfds[fd].events & (EV_READ | EV_WRITE);
+			if (anfds [fd].emask & EV_EMASK_EPERM && events) {
+				fd_event (EV_A_ fd, events);
+			} else
+				epoll_eperms [i] = epoll_eperms [--epoll_epermcnt];
+				anfds [fd].emask = 0;
+			}
+		}
+	  */
+	}
 	return ret;
 }
 

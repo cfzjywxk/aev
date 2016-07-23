@@ -18,15 +18,15 @@ common_allocator::~common_allocator() {
 	// TODO Auto-generated destructor stub
 }
 
-int tc_malloc(size_t len, void *&obj)
+void *tc_malloc(size_t len)
 {
-	int ret = EV_SUCCESS;
-	void *mem = malloc(len);
-	if (NULL != mem) {
-		obj = mem;
-	} else {
-		ret = EV_ALLOC_FAILED;
-		obj = NULL;
+	return (void *)malloc(len);
+}
+
+void tc_free(void *ptr)
+{
+	if (NULL != ptr) {
+		free(ptr);
+		ptr = NULL;
 	}
-	return ret;
 }
