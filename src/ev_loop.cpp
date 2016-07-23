@@ -62,6 +62,108 @@ int ev_loop::epoll_backend(int &backended_fd, bool &res)
 	return ret;
 }
 
+int ev_loop::epoll_modify(int fd, int old_ev, int new_ev)
+{
+	int ret = EV_SUCCESS;
+  struct epoll_event ev;
+  unsigned char oldmask;
+
+  /*
+   * we handle EPOLL_CTL_DEL by ignoring it here
+   * on the assumption that the fd is gone anyways
+   * if that is wrong, we have to handle the spurious
+   * event in epoll_poll.
+   * if the fd is added again, we try to ADD it, and, if that
+   * fails, we assume it still has the same eventmask.
+   */
+	if (new_ev) {
+		anfd *an_fd = NULL;
+		if (fdmap_.count(fd) == 0) {
+			ret = EV_INVALID_ARGS;
+			TBSYS_LOG(ERROR, "invalid fd which cannot be found in map fd=%d ret=%d", fd, ret);
+		} else {
+			an_fd = fdmap_.at(fd);
+		}
+		oldmask = an_fd->emask_;
+		an_fd->emask_ = new_ev;
+
+		/* store the generation counter in the upper 32 bits, the fd in the lower 32 bits */
+		ev.data.u64 = (uint64_t) (uint32_t) fd
+				| ((uint64_t) (uint32_t) ++an_fd->egen_ << 32);
+		ev.events = (new_ev & EV_READ ? EPOLLIN : 0) | (new_ev & EV_WRITE ? EPOLLOUT : 0);
+
+		if (epoll_ctl(ev_backend_fd_,
+				old_ev && oldmask != new_ev ? EPOLL_CTL_MOD : EPOLL_CTL_ADD, fd, &ev)) {
+			ret = EV_EPOLL_FAIL;
+			TBSYS_LOG(ERROR,
+					"epoll_ctrl call failed on ev_backend_fd_=%d\n fd=%d, ret=%d",
+					ev_backend_fd_, fd, ret);
+
+			//error process
+			if (errno == ENOENT) {
+				/* if ENOENT then the fd went away, so try to do the right thing */
+				if (!new_ev)
+					goto dec_egen;
+
+				if (!epoll_ctl(ev_backend_fd_, EPOLL_CTL_ADD, fd, &ev)) {
+					ret = EV_SUCCESS;
+				} else {
+					ret = EV_EPOLL_FAIL;
+					TBSYS_LOG(ERROR,
+							"epoll_ctrl call failed AGAIN on ev_backend_fd_=%d\n fd=%d, ret=%d",
+							ev_backend_fd_, fd, ret);
+				}
+			} else if ((errno == EEXIST)) {
+				/* EEXIST means we ignored a previous DEL, but the fd is still active */
+				/* if the kernel mask is the same as the new mask, we assume it hasn't changed */
+				if (oldmask == new_ev)
+					goto dec_egen;
+
+				if (!epoll_ctl(ev_backend_fd_, EPOLL_CTL_MOD, fd, &ev)) {
+					ret = EV_SUCCESS;
+				} else {
+					ret = EV_EPOLL_FAIL;
+					TBSYS_LOG(ERROR,
+							"epoll_ctrl call failed AGAIN on ev_backend_fd_=%d\n fd=%d, ret=%d",
+							ev_backend_fd_, fd, ret);
+				}
+			} else if ((errno == EPERM)) {
+				/* EPERM means the fd is always ready, but epoll is too snobbish */
+				/* to handle it, unlike select or poll. */
+				#define EV_EMASK_EPERM 0x80
+				an_fd->emask_ = EV_EMASK_EPERM;
+
+				/* add fd to epoll_eperms, if not already inside */
+				if (!(oldmask & EV_EMASK_EPERM)) {
+					/*
+					array_needsize (int, epoll_eperms, epoll_epermmax, epoll_epermcnt + 1, EMPTY2);
+					epoll_eperms[epoll_epermcnt++] = fd;
+					*/
+				}
+				TBSYS_LOG(ERROR, "seems fd not suported by epoll fd=%d, ret=%d", fd, ret);
+			}
+			fd_kill(an_fd);
+
+			dec_egen:
+			/* we didn't successfully call epoll_ctl, so decrement the generation counter again */
+			--an_fd->egen_;
+		}
+	}
+
+	return ret;
+}
+
+int ev_loop::fd_kill(anfd *afd)
+{
+	int ret = EV_SUCCESS;
+	//walk through the watcher list and collect all the events flags
+	for (std::list<ev_io*>::iterator it = afd->watcher_list_.begin();
+			it != afd->watcher_list_.end(); ++it) {
+		//TODO
+	}
+	return ret;
+}
+
 int ev_loop::run()
 {
 	int ret = EV_SUCCESS;

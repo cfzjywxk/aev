@@ -34,6 +34,10 @@ protected:
 
 	//backend epoll
 	int epoll_backend(int &backended_fd, bool &res);
+	int epoll_modify(int fd, int old_ev, int new_ev);
+	int epoll_poll();
+	int fd_kill(anfd *afd);
+
 
 	int ev_backend_fd_;
 	bool ev_backended_;

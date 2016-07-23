@@ -12,6 +12,7 @@
 #define EV_SUCCESS 0
 #define EV_INVALID_ARGS 1
 #define EV_ALLOC_FAILED 2
+#define EV_EPOLL_FAIL 3
 
 
 
