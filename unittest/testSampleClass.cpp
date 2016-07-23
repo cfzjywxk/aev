@@ -17,7 +17,9 @@ TEST_F(testClass, Test1)
 {
   sampleClass obj;
   EXPECT_EQ(1, obj.getPlusOne());
-	TBSYS_LOG(INFO, "testClass first test finished");
+
+
+  TBSYS_LOG(INFO, "testClass first test finished");
   sampleClass obj2(10);
   EXPECT_EQ(11, obj2.getPlusOne());
 	TBSYS_LOG(INFO, "testClass second test finished");

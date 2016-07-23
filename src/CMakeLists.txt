@@ -1,4 +1,4 @@
-set(LIB_SRC sampleClass.cpp)
+set(LIB_SRC sampleClass.cpp ev_watcher.cpp ev_io.cpp)
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/lib")
 
 if(1)
