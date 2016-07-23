@@ -1,4 +1,4 @@
-set(LIB_SRC sampleClass.cpp ev_watcher.cpp ev_io.cpp)
+set(LIB_SRC sampleClass.cpp ev_watcher.cpp ev_io.cpp ev_loop.cpp anfd.cpp)
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/lib")
 
 if(1)
@@ -8,6 +8,7 @@ if(1)
   SET_TARGET_PROPERTIES(aev_static PROPERTIES OUTPUT_NAME "aev")
   GET_TARGET_PROPERTY(OUTPUT_VALUE aev_static OUTPUT_NAME)
   MESSAGE(STATUS "This is the aev_static OUTPUT_NAME:" ${OUTPUT_VALUE})
+  MESSAGE(STATUS "CXX flags are" ${CMAKE_CXX_FLAGS})
 
 else(1)
   add_library(aev_shared SHARED ${LIB_SRC})

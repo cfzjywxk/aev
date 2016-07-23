@@ -19,7 +19,8 @@ public:
 	ev_watcher(CallbackPtr ptr) : cb_(ptr) {};
 	virtual ~ev_watcher();
 
-	int callback(ev_loop *loop, ev_watcher *watcher, int revents);
+	void set_callback(CallbackPtr ptr) {cb_ = ptr;}
+	virtual int callback(ev_loop *loop, int revents);
 protected:
 	CallbackPtr cb_;
 };

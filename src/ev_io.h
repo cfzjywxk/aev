@@ -13,9 +13,15 @@
 
 class ev_io : public ev_watcher{
 public:
-	ev_io() : fd_(EV_INVALID_VALUE), events_(EV_INVALID_VALUE){};
-	ev_io(int fd, int events) : fd_(fd), events_(events){};
+	ev_io(CallbackPtr ptr) : ev_watcher(ptr), fd_(EV_INVALID_VALUE), events_(EV_INVALID_VALUE){};
+	ev_io(CallbackPtr ptr, int fd, int events) : ev_watcher(ptr), fd_(fd), events_(events){};
 	virtual ~ev_io();
+
+	inline int get_fd() {return fd_;}
+	inline void set_fd(int fd) {fd_ = fd;}
+
+	inline int get_events() {return events_;}
+	inline void set_events(int events) {events_ = events;}
 
 protected:
 	int fd_;
