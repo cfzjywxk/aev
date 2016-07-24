@@ -12,7 +12,7 @@ ev_watcher::~ev_watcher() {
 	// TODO Auto-generated destructor stub
 }
 
-int ev_watcher::callback(ev_loop *loop, int revents)
+int ev_watcher::callback(int revents)
 {
-	return NULL != cb_ ? cb_(loop, this, revents) : EV_INVALID_ARGS;
+	return NULL != cb_ ? cb_(this, revents) : EV_INVALID_ARGS;
 }

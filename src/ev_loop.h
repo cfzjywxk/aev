@@ -28,11 +28,20 @@ public:
 	int ev_io_start(ev_io *event_io);
 
 protected:
+	struct process_info {
+		process_info(anfd *theafd, int theevents) :
+				afd(theafd), events(theevents) {}
+		anfd *afd;
+		int events;
+	};
+
 	int fd_reify();
 	int polling(double timeout);
 	int invoke_pending();
 	int fd_change(int fd, int revents);
 	int backend_modify(int fd, unsigned char o_events, unsigned char cur_events);
+	int fd_event(anfd *afd, int events);
+	int fd_event_no_check(anfd *afd, int events);
 
 	//backend epoll
 	int epoll_backend(int &backended_fd, bool &res);
@@ -54,6 +63,7 @@ protected:
 	bool loop_done_;
 	std::queue<int> fdchanges_; //fd that changes by ev_io_start function call
 	std::unordered_map<int, anfd*> fdmap_; //hash table fd -> anfd structure
+	std::queue<process_info> pendings_;
 };
 
 #endif /* EV_LOOP_H_ */

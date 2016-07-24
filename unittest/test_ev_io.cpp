@@ -19,7 +19,7 @@ class testClass : public testing::Test {
 };
 
 
-int func(ev_loop *loop, ev_watcher *watcher, int revents)
+static int func(ev_watcher *watcher, int revents)
 {
 	int ret = EV_SUCCESS;
 	std::cout << "func called" << std::endl << std::cout;
@@ -29,7 +29,7 @@ int func(ev_loop *loop, ev_watcher *watcher, int revents)
 TEST_F(testClass, test_ev_io_basic)
 {
 	ev_io ev_io_obj(func, STDOUT_FILENO, 1);
-  EXPECT_EQ(EV_SUCCESS, ev_io_obj.callback(NULL, 1));
+  EXPECT_EQ(EV_SUCCESS, ev_io_obj.callback(1));
 }
 
 int main(int argc, char * argv[])

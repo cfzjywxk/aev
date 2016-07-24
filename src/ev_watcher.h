@@ -9,9 +9,8 @@
 #define EVBASE_H_
 #include <boost/utility.hpp>
 
-class ev_loop;
 class ev_watcher;
-typedef	int (*CallbackPtr)(ev_loop *loop, ev_watcher *watcher, int revents);
+typedef	int (*CallbackPtr)(ev_watcher *watcher, int revents);
 
 class ev_watcher : public boost::noncopyable {
 public:
@@ -20,7 +19,7 @@ public:
 	virtual ~ev_watcher();
 
 	void set_callback(CallbackPtr ptr) {cb_ = ptr;}
-	virtual int callback(ev_loop *loop, int revents);
+	virtual int callback(int revents);
 protected:
 	CallbackPtr cb_;
 };

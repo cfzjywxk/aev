@@ -7,6 +7,7 @@
 
 #include "ev_loop.h"
 #include <sys/epoll.h>
+#include <assert.h>
 #include "lib/Common.h"
 #include "lib/commonallocator.h"
 #include "lib/tblog.h"
@@ -16,7 +17,7 @@
 
 ev_loop::ev_loop() :
 		ev_backend_fd_(-1), ev_backended_(false), backend_mintime(0), epoll_events(
-		NULL), epoll_eventmax(0), epoll_epermcnt(false), ev_timestamp_(0), loop_done_(false), fdchanges_(), fdmap_() {
+		NULL), epoll_eventmax(0), epoll_epermcnt(false), ev_timestamp_(0), loop_done_(false), fdchanges_(), fdmap_(), pendings_() {
 	// TODO Auto-generated constructor stub
 
 }
@@ -56,6 +57,7 @@ int ev_loop::epoll_backend(int &backended_fd, bool &res)
 
 	if (EV_SUCCESS == ret) {
 		res = true;
+		TBSYS_LOG(INFO, "epoll create success epoll_fd=%d ", backended_fd);
 	} else {
 		res = false;
 	}
@@ -189,7 +191,23 @@ int ev_loop::ev_io_start(ev_io *event_io)
 	if (NULL == event_io) {
 		ret = EV_INVALID_ARGS;
 	} else {
-		return fd_change(event_io->get_fd(), event_io->get_events());
+		//append to anfd wathcer list
+		int fd = event_io->get_fd();
+		anfd *afd = NULL;
+		if (fdmap_.count(fd) == 0) {
+			NEW(anfd, afd, sizeof(anfd));
+			if (NULL != afd) {
+				fdmap_.insert( { fd, afd });
+			} else {
+				ret = EV_ALLOC_FAILED;
+			}
+		}
+		if (EV_SUCCESS == ret) {
+			assert(NULL != afd);
+			afd->watcher_list_.push_back(event_io);
+			ret = fd_change(event_io->get_fd(), event_io->get_events());
+		}
+		TBSYS_LOG(INFO, "fd_change result fd=%d, ret=%d", fd, ret);
 	}
 	return ret;
 }
@@ -217,9 +235,8 @@ int ev_loop::fd_reify()
 				ret = EV_ALLOC_FAILED;
 			}
 		} else {
-			anfd *an_fd = fdmap_.at(fd);
+			an_fd = fdmap_.at(fd);
 		}
-		ev_io *w = NULL;
 		if (EV_SUCCESS == ret) {
 			unsigned char o_events = an_fd->events_;
 			unsigned char o_reify = an_fd->reify_;
@@ -243,6 +260,7 @@ int ev_loop::fd_reify()
 		if (EV_SUCCESS == ret) {
 			fdchanges_.pop();
 		}
+		TBSYS_LOG(INFO, "backend_modify epoll ctrl result is ret=%d, fd=%d", ret, fd);
 	}
 	return ret;
 }
@@ -270,6 +288,8 @@ int ev_loop::epoll_poll(double timeout)
   //EV_RELEASE_CB;
   eventcnt = epoll_wait(ev_backend_fd_, epoll_events, epoll_eventmax, timeout * 1e3);
   //EV_ACQUIRE_CB;
+
+  //TBSYS_LOG(INFO, "polling result eventcnt=%d", eventcnt);
 
 	if ((eventcnt < 0)) {
 		ret = EV_EPOLL_FAIL;
@@ -306,6 +326,7 @@ int ev_loop::epoll_poll(double timeout)
 			}
 
 			if ((got & ~want)) {
+				assert(0);
 				afd->emask_ = want;
 
 				/*
@@ -324,12 +345,12 @@ int ev_loop::epoll_poll(double timeout)
 				/* which is fortunately easy to do for us. */
 				if (epoll_ctl(ev_backend_fd_, want ? EPOLL_CTL_MOD : EPOLL_CTL_DEL, fd,
 						ev)) {
-					//postfork |= 2; /* an error occurred, recreate kernel state */ ray
+					//postfork |= 2; /* an error occurred, recreate kernel state */ TODO
 					continue;
 				}
 			}
-			//TODO
-			//fd_event(fd, got);
+			ret = fd_event(afd, got);
+			//TBSYS_LOG(INFO, "epoll result is ret=%d, fd=%d", ret, fd);
 		}
 
 		/* if the receive array was full, increase its size */
@@ -358,8 +379,43 @@ int ev_loop::epoll_poll(double timeout)
 	return ret;
 }
 
+/*
+ * param:
+ *      events: actually get events from epoll
+ */
+int ev_loop::fd_event(anfd *afd, int events)
+{
+	int ret = EV_SUCCESS;
+	assert(NULL != afd);
+	if (!afd->reify_) {
+		ret = fd_event_no_check(afd, events);
+	}
+  return ret;
+}
+
+int ev_loop::fd_event_no_check(anfd *afd, int events)
+{
+	int ret = EV_SUCCESS;
+	for (std::list<ev_io*>::iterator it = afd->watcher_list_.begin();
+			EV_SUCCESS == ret && it != afd->watcher_list_.end(); ++it) {
+		//TODO simple queue structure
+		pendings_.push(process_info(afd, events));
+	}
+	return ret;
+}
+
 int ev_loop::invoke_pending()
 {
 	int ret = EV_SUCCESS;
+	while (EV_SUCCESS == ret && !pendings_.empty()) {
+		process_info proc = pendings_.front();
+		for (std::list<ev_io*>::iterator it = proc.afd->watcher_list_.begin();
+				EV_SUCCESS == ret && it != proc.afd->watcher_list_.end(); ++it) {
+			ev_io *cur_watcher = *it;
+			ret = cur_watcher->callback(proc.events);
+		}
+		pendings_.pop();
+		//TBSYS_LOG(INFO, "pending processing done, ret=%d", ret);
+	}
 	return ret;
 }

@@ -7,6 +7,7 @@
 
 #include "commonallocator.h"
 #include <stddef.h>
+#include <malloc.h>
 #include "lib/Common.h"
 
 common_allocator::common_allocator() {
@@ -18,7 +19,7 @@ common_allocator::~common_allocator() {
 	// TODO Auto-generated destructor stub
 }
 
-void *tc_malloc(size_t len)
+void *tc_malloc(int len)
 {
 	return (void *)malloc(len);
 }
