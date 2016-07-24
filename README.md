@@ -7,8 +7,11 @@ prerequisites:
 
 ## usage
 git clone https://github.com/cfzjywxk/aev
+
 cd aev
+
 cmake .
+
 make
 
 some simple unittest samples in unittest dir
