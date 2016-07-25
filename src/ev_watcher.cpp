@@ -8,7 +8,8 @@
 #include "ev_watcher.h"
 #include "lib/Common.h"
 
-ev_watcher::~ev_watcher() {
+ev_watcher::~ev_watcher()
+{
 	// TODO Auto-generated destructor stub
 }
 

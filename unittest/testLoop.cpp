@@ -12,8 +12,9 @@
 #include "lib/tblog.h"
 #include "ev_event_mask.h"
 
-class testClass : public testing::Test {
-	virtual void SetUp() {
+class testClass: public testing::Test {
+	virtual void SetUp()
+	{
 		TBSYS_LOG(INFO, "testClass setup function executed");
 	}
 };
@@ -22,14 +23,14 @@ static int func(ev_watcher *watcher, int revents)
 {
 	int ret = EV_SUCCESS;
 	char *line = NULL;
-  size_t linelen = 0;
-  int read = getline(&line, &linelen, stdin);
-  if (read < 0) {
-      printf("could not getline\n");
-      abort();
-  } else {
-	  printf("Read: %.*s", read, line);
-  }
+	size_t linelen = 0;
+	int read = getline(&line, &linelen, stdin);
+	if (read < 0) {
+		printf("could not getline\n");
+		abort();
+	} else {
+		printf("Read: %.*s", read, line);
+	}
 	return ret;
 }
 

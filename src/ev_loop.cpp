@@ -17,12 +17,14 @@
 
 ev_loop::ev_loop() :
 		ev_backend_fd_(-1), ev_backended_(false), backend_mintime(0), epoll_events(
-		NULL), epoll_eventmax(0), epoll_epermcnt(false), ev_timestamp_(0), loop_done_(false), fdchanges_(), fdmap_(), pendings_() {
+		NULL), epoll_eventmax(0), epoll_epermcnt(false), ev_timestamp_(0), loop_done_(false), fdchanges_(), fdmap_(), pendings_()
+{
 	// TODO Auto-generated constructor stub
 
 }
 
-ev_loop::~ev_loop() {
+ev_loop::~ev_loop()
+{
 	// TODO Auto-generated destructor stub
 }
 
@@ -35,25 +37,26 @@ int ev_loop::epoll_backend(int &backended_fd, bool &res)
 {
 	int ret = EV_SUCCESS;
 #ifdef EPOLL_CLOEXEC
-  backended_fd = epoll_create1 (EPOLL_CLOEXEC);
+	backended_fd = epoll_create1(EPOLL_CLOEXEC);
 
-  if (backended_fd < 0 && (errno == EINVAL || errno == ENOSYS))
+	if (backended_fd < 0 && (errno == EINVAL || errno == ENOSYS))
 #endif
-    backended_fd = epoll_create (256); //max 256 fd
+		backended_fd = epoll_create(256); //max 256 fd
 
-  if (backended_fd < 0) {
-  	ret = EV_INVALID_VALUE;
-  }
+	if (backended_fd < 0) {
+		ret = EV_INVALID_VALUE;
+	}
 
-  if (EV_SUCCESS == ret) {
-	  fcntl (backended_fd, F_SETFD, FD_CLOEXEC);
+	if (EV_SUCCESS == ret) {
+		fcntl(backended_fd, F_SETFD, FD_CLOEXEC);
 
-	  backend_mintime = 1e-3; /* epoll does sometimes return early, this is just to avoid the worst */
-	  epoll_eventmax = 64; /* initial number of events receivable per poll */
-	  if ((NULL == (epoll_events = (struct epoll_event *)(tc_malloc(sizeof(struct epoll_event)))))) {
-	  	TBSYS_LOG(ERROR, "alloc %ld mem for epoll_event failed ret=%d\n", sizeof(struct epoll_event), ret);
-	  }
-  }
+		backend_mintime = 1e-3; /* epoll does sometimes return early, this is just to avoid the worst */
+		epoll_eventmax = 64; /* initial number of events receivable per poll */
+		if ((NULL == (epoll_events = (struct epoll_event *) (tc_malloc(sizeof(struct epoll_event)))))) {
+			TBSYS_LOG(ERROR, "alloc %ld mem for epoll_event failed ret=%d\n", sizeof(struct epoll_event),
+					ret);
+		}
+	}
 
 	if (EV_SUCCESS == ret) {
 		res = true;
@@ -67,17 +70,17 @@ int ev_loop::epoll_backend(int &backended_fd, bool &res)
 int ev_loop::epoll_modify(int fd, int old_ev, int new_ev)
 {
 	int ret = EV_SUCCESS;
-  struct epoll_event ev;
-  unsigned char oldmask;
+	struct epoll_event ev;
+	unsigned char oldmask;
 
-  /*
-   * we handle EPOLL_CTL_DEL by ignoring it here
-   * on the assumption that the fd is gone anyways
-   * if that is wrong, we have to handle the spurious
-   * event in epoll_poll.
-   * if the fd is added again, we try to ADD it, and, if that
-   * fails, we assume it still has the same eventmask.
-   */
+	/*
+	 * we handle EPOLL_CTL_DEL by ignoring it here
+	 * on the assumption that the fd is gone anyways
+	 * if that is wrong, we have to handle the spurious
+	 * event in epoll_poll.
+	 * if the fd is added again, we try to ADD it, and, if that
+	 * fails, we assume it still has the same eventmask.
+	 */
 	if (new_ev) {
 		anfd *an_fd = NULL;
 		if (fdmap_.count(fd) == 0) {
@@ -90,15 +93,13 @@ int ev_loop::epoll_modify(int fd, int old_ev, int new_ev)
 		an_fd->emask_ = new_ev;
 
 		/* store the generation counter in the upper 32 bits, the fd in the lower 32 bits */
-		ev.data.u64 = (uint64_t) (uint32_t) fd
-				| ((uint64_t) (uint32_t) ++an_fd->egen_ << 32);
+		ev.data.u64 = (uint64_t) (uint32_t) fd | ((uint64_t) (uint32_t) ++an_fd->egen_ << 32);
 		ev.events = (new_ev & EV_READ ? EPOLLIN : 0) | (new_ev & EV_WRITE ? EPOLLOUT : 0);
 
-		if (epoll_ctl(ev_backend_fd_,
-				old_ev && oldmask != new_ev ? EPOLL_CTL_MOD : EPOLL_CTL_ADD, fd, &ev)) {
+		if (epoll_ctl(ev_backend_fd_, old_ev && oldmask != new_ev ? EPOLL_CTL_MOD : EPOLL_CTL_ADD, fd,
+				&ev)) {
 			ret = EV_EPOLL_FAIL;
-			TBSYS_LOG(ERROR,
-					"epoll_ctrl call failed on ev_backend_fd_=%d\n fd=%d, ret=%d",
+			TBSYS_LOG(ERROR, "epoll_ctrl call failed on ev_backend_fd_=%d\n fd=%d, ret=%d",
 					ev_backend_fd_, fd, ret);
 
 			//error process
@@ -111,8 +112,7 @@ int ev_loop::epoll_modify(int fd, int old_ev, int new_ev)
 					ret = EV_SUCCESS;
 				} else {
 					ret = EV_EPOLL_FAIL;
-					TBSYS_LOG(ERROR,
-							"epoll_ctrl call failed AGAIN on ev_backend_fd_=%d\n fd=%d, ret=%d",
+					TBSYS_LOG(ERROR, "epoll_ctrl call failed AGAIN on ev_backend_fd_=%d\n fd=%d, ret=%d",
 							ev_backend_fd_, fd, ret);
 				}
 			} else if ((errno == EEXIST)) {
@@ -125,22 +125,21 @@ int ev_loop::epoll_modify(int fd, int old_ev, int new_ev)
 					ret = EV_SUCCESS;
 				} else {
 					ret = EV_EPOLL_FAIL;
-					TBSYS_LOG(ERROR,
-							"epoll_ctrl call failed AGAIN on ev_backend_fd_=%d\n fd=%d, ret=%d",
+					TBSYS_LOG(ERROR, "epoll_ctrl call failed AGAIN on ev_backend_fd_=%d\n fd=%d, ret=%d",
 							ev_backend_fd_, fd, ret);
 				}
 			} else if ((errno == EPERM)) {
 				/* EPERM means the fd is always ready, but epoll is too snobbish */
 				/* to handle it, unlike select or poll. */
-				#define EV_EMASK_EPERM 0x80
+#define EV_EMASK_EPERM 0x80
 				an_fd->emask_ = EV_EMASK_EPERM;
 
 				/* add fd to epoll_eperms, if not already inside */
 				if (!(oldmask & EV_EMASK_EPERM)) {
 					/*
-					array_needsize (int, epoll_eperms, epoll_epermmax, epoll_epermcnt + 1, EMPTY2);
-					epoll_eperms[epoll_epermcnt++] = fd;
-					*/
+					 array_needsize (int, epoll_eperms, epoll_epermmax, epoll_epermcnt + 1, EMPTY2);
+					 epoll_eperms[epoll_epermcnt++] = fd;
+					 */
 				}
 				TBSYS_LOG(ERROR, "seems fd not suported by epoll fd=%d, ret=%d", fd, ret);
 			}
@@ -159,8 +158,8 @@ int ev_loop::fd_kill(anfd *afd)
 {
 	int ret = EV_SUCCESS;
 	//walk through the watcher list and collect all the events flags
-	for (std::list<ev_io*>::iterator it = afd->watcher_list_.begin();
-			it != afd->watcher_list_.end(); ++it) {
+	for (std::list<ev_io*>::iterator it = afd->watcher_list_.begin(); it != afd->watcher_list_.end();
+			++it) {
 		//TODO
 	}
 	return ret;
@@ -183,7 +182,6 @@ int ev_loop::run()
 	}
 	return ret;
 }
-
 
 int ev_loop::ev_io_start(ev_io *event_io)
 {
@@ -211,7 +209,6 @@ int ev_loop::ev_io_start(ev_io *event_io)
 	}
 	return ret;
 }
-
 
 int ev_loop::fd_change(int fd, int revents)
 {
@@ -270,26 +267,27 @@ int ev_loop::backend_modify(int fd, unsigned char o_events, unsigned char cur_ev
 	return epoll_modify(fd, o_events, cur_events);
 }
 
-int ev_loop::polling(double timeout) {
+int ev_loop::polling(double timeout)
+{
 	return epoll_poll(timeout);
 }
 int ev_loop::epoll_poll(double timeout)
 {
 	int ret = EV_SUCCESS;
 	int i = 0;
-  int eventcnt = 0;
+	int eventcnt = 0;
 
-  if ((epoll_epermcnt)) {
-    timeout = 0.;
-  }
+	if ((epoll_epermcnt)) {
+		timeout = 0.;
+	}
 
-  /* epoll wait times cannot be larger than (LONG_MAX - 999UL) / HZ msecs, which is below */
-  /* the default libev max wait time, however. */
-  //EV_RELEASE_CB;
-  eventcnt = epoll_wait(ev_backend_fd_, epoll_events, epoll_eventmax, timeout * 1e3);
-  //EV_ACQUIRE_CB;
+	/* epoll wait times cannot be larger than (LONG_MAX - 999UL) / HZ msecs, which is below */
+	/* the default libev max wait time, however. */
+	//EV_RELEASE_CB;
+	eventcnt = epoll_wait(ev_backend_fd_, epoll_events, epoll_eventmax, timeout * 1e3);
+	//EV_ACQUIRE_CB;
 
-  //TBSYS_LOG(INFO, "polling result eventcnt=%d", eventcnt);
+	//TBSYS_LOG(INFO, "polling result eventcnt=%d", eventcnt);
 
 	if ((eventcnt < 0)) {
 		ret = EV_EPOLL_FAIL;
@@ -338,13 +336,11 @@ int ev_loop::epoll_poll(double timeout)
 				 * partially here, when epoll_ctl returns an error (== a child has the fd
 				 * but we closed it).
 				 */
-				ev->events = (want & EV_READ ? EPOLLIN : 0)
-						| (want & EV_WRITE ? EPOLLOUT : 0);
+				ev->events = (want & EV_READ ? EPOLLIN : 0) | (want & EV_WRITE ? EPOLLOUT : 0);
 
 				/* pre-2.6.9 kernels require a non-null pointer with EPOLL_CTL_DEL, */
 				/* which is fortunately easy to do for us. */
-				if (epoll_ctl(ev_backend_fd_, want ? EPOLL_CTL_MOD : EPOLL_CTL_DEL, fd,
-						ev)) {
+				if (epoll_ctl(ev_backend_fd_, want ? EPOLL_CTL_MOD : EPOLL_CTL_DEL, fd, ev)) {
 					//postfork |= 2; /* an error occurred, recreate kernel state */ TODO
 					continue;
 				}
@@ -356,25 +352,25 @@ int ev_loop::epoll_poll(double timeout)
 		/* if the receive array was full, increase its size */
 		if ((eventcnt == epoll_eventmax)) {
 			tc_free(epoll_events);
-			epoll_eventmax = array_nextsize(sizeof(struct epoll_event),
-					epoll_eventmax, epoll_eventmax + 1);
-			epoll_events = (struct epoll_event *) (tc_malloc(
-					sizeof(struct epoll_event) * epoll_eventmax));
+			epoll_eventmax = array_nextsize(sizeof(struct epoll_event), epoll_eventmax,
+					epoll_eventmax + 1);
+			epoll_events =
+					(struct epoll_event *) (tc_malloc(sizeof(struct epoll_event) * epoll_eventmax));
 		}
 
 		/* now synthesize events for all fds where epoll fails, while select works... */
 		/* TODO check this later
-		for (i = epoll_epermcnt; i--;) {
-			int fd = epoll_eperms[i];
-			unsigned char events = anfds[fd].events & (EV_READ | EV_WRITE);
-			if (anfds [fd].emask & EV_EMASK_EPERM && events) {
-				fd_event (EV_A_ fd, events);
-			} else
-				epoll_eperms [i] = epoll_eperms [--epoll_epermcnt];
-				anfds [fd].emask = 0;
-			}
-		}
-	  */
+		 for (i = epoll_epermcnt; i--;) {
+		 int fd = epoll_eperms[i];
+		 unsigned char events = anfds[fd].events & (EV_READ | EV_WRITE);
+		 if (anfds [fd].emask & EV_EMASK_EPERM && events) {
+		 fd_event (EV_A_ fd, events);
+		 } else
+		 epoll_eperms [i] = epoll_eperms [--epoll_epermcnt];
+		 anfds [fd].emask = 0;
+		 }
+		 }
+		 */
 	}
 	return ret;
 }
@@ -390,14 +386,14 @@ int ev_loop::fd_event(anfd *afd, int events)
 	if (!afd->reify_) {
 		ret = fd_event_no_check(afd, events);
 	}
-  return ret;
+	return ret;
 }
 
 int ev_loop::fd_event_no_check(anfd *afd, int events)
 {
 	int ret = EV_SUCCESS;
 	for (std::list<ev_io*>::iterator it = afd->watcher_list_.begin();
-			EV_SUCCESS == ret && it != afd->watcher_list_.end(); ++it) {
+	EV_SUCCESS == ret && it != afd->watcher_list_.end(); ++it) {
 		//TODO simple queue structure
 		pendings_.push(process_info(afd, events));
 	}
@@ -410,7 +406,7 @@ int ev_loop::invoke_pending()
 	while (EV_SUCCESS == ret && !pendings_.empty()) {
 		process_info proc = pendings_.front();
 		for (std::list<ev_io*>::iterator it = proc.afd->watcher_list_.begin();
-				EV_SUCCESS == ret && it != proc.afd->watcher_list_.end(); ++it) {
+		EV_SUCCESS == ret && it != proc.afd->watcher_list_.end(); ++it) {
 			ev_io *cur_watcher = *it;
 			ret = cur_watcher->callback(proc.events);
 		}

@@ -7,7 +7,8 @@
 
 #include "ev_io.h"
 
-ev_io::~ev_io() {
+ev_io::~ev_io()
+{
 	// TODO Auto-generated destructor stub
 }
 

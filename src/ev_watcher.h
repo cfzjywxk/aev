@@ -10,15 +10,26 @@
 #include <boost/utility.hpp>
 
 class ev_watcher;
-typedef	int (*CallbackPtr)(ev_watcher *watcher, int revents);
+typedef int (*CallbackPtr)(ev_watcher *watcher, int revents);
 
-class ev_watcher : public boost::noncopyable {
+class ev_watcher: public boost::noncopyable {
 public:
-	ev_watcher() : cb_(NULL) {};
-	ev_watcher(CallbackPtr ptr) : cb_(ptr) {};
+	ev_watcher() :
+			cb_(NULL)
+	{
+	}
+	;
+	ev_watcher(CallbackPtr ptr) :
+			cb_(ptr)
+	{
+	}
+	;
 	virtual ~ev_watcher();
 
-	void set_callback(CallbackPtr ptr) {cb_ = ptr;}
+	void set_callback(CallbackPtr ptr)
+	{
+		cb_ = ptr;
+	}
 	virtual int callback(int revents);
 protected:
 	CallbackPtr cb_;

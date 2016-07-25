@@ -7,12 +7,15 @@
 
 #include "anfd.h"
 
-anfd::anfd() : watcher_list_(), events_(0), reify_(0), unused_(0), emask_(0){
+anfd::anfd() :
+		watcher_list_(), events_(0), reify_(0), unused_(0), emask_(0)
+{
 	// TODO Auto-generated constructor stub
 
 }
 
-anfd::~anfd() {
+anfd::~anfd()
+{
 	// TODO Auto-generated destructor stub
 }
 

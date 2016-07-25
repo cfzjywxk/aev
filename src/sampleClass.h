@@ -3,12 +3,17 @@
 
 class sampleClass {
 public:
-  sampleClass(): value_(0) {}
-  sampleClass(int var): value_(var) {}
-  int getPlusOne();
+	sampleClass() :
+			value_(0)
+	{
+	}
+	sampleClass(int var) :
+			value_(var)
+	{
+	}
+	int getPlusOne();
 private:
-  int value_;
+	int value_;
 };
-
 
 #endif

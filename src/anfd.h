@@ -15,12 +15,12 @@ public:
 	virtual ~anfd();
 
 public:
-  std::list<ev_io*> watcher_list_;
-  unsigned char events_; /* the events watched for */
-  unsigned char reify_;  /* flag set when this ANFD needs reification (EV_ANFD_REIFY, EV__IOFDSET) */
-  unsigned char emask_;  /* the epoll backend stores the actual kernel mask in here */
-  unsigned char unused_;
-  unsigned int egen_;    /* generation counter to counter epoll bugs */
+	std::list<ev_io*> watcher_list_;
+	unsigned char events_; /* the events watched for */
+	unsigned char reify_; /* flag set when this ANFD needs reification (EV_ANFD_REIFY, EV__IOFDSET) */
+	unsigned char emask_; /* the epoll backend stores the actual kernel mask in here */
+	unsigned char unused_;
+	unsigned int egen_; /* generation counter to counter epoll bugs */
 };
 
 #endif /* ANFD_H_ */

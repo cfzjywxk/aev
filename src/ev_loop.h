@@ -18,7 +18,7 @@ class anfd;
  * init_loop() -> ev_io_start()
  * all finished, start run() method
  */
-class ev_loop : public boost::noncopyable {
+class ev_loop: public boost::noncopyable {
 public:
 	ev_loop();
 	virtual ~ev_loop();
@@ -30,7 +30,9 @@ public:
 protected:
 	struct process_info {
 		process_info(anfd *theafd, int theevents) :
-				afd(theafd), events(theevents) {}
+				afd(theafd), events(theevents)
+		{
+		}
 		anfd *afd;
 		int events;
 	};
@@ -48,7 +50,6 @@ protected:
 	int epoll_modify(int fd, int old_ev, int new_ev);
 	int epoll_poll(double timeout);
 	int fd_kill(anfd *afd);
-
 
 	int ev_backend_fd_;
 	bool ev_backended_;

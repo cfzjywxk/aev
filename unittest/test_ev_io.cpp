@@ -5,19 +5,18 @@
  *      Author: ray
  */
 
-
 #include <iostream>
 #include <gtest/gtest.h>
 #include <unistd.h>
 #include "ev_io.h"
 #include "lib/tblog.h"
 
-class testClass : public testing::Test {
-	virtual void SetUp() {
+class testClass: public testing::Test {
+	virtual void SetUp()
+	{
 		TBSYS_LOG(INFO, "testClass setup function executed");
 	}
 };
-
 
 static int func(ev_watcher *watcher, int revents)
 {
@@ -29,12 +28,12 @@ static int func(ev_watcher *watcher, int revents)
 TEST_F(testClass, test_ev_io_basic)
 {
 	ev_io ev_io_obj(func, STDOUT_FILENO, 1);
-  EXPECT_EQ(EV_SUCCESS, ev_io_obj.callback(1));
+	EXPECT_EQ(EV_SUCCESS, ev_io_obj.callback(1));
 }
 
 int main(int argc, char * argv[])
 {
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
+	::testing::InitGoogleTest(&argc, argv);
+	return RUN_ALL_TESTS();
 }
 
