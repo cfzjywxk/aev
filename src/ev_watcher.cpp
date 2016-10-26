@@ -15,5 +15,5 @@ ev_watcher::~ev_watcher()
 
 int ev_watcher::callback(int revents)
 {
-	return NULL != cb_ ? cb_(this, revents) : EV_INVALID_ARGS;
+	return nullptr != cb_ ? cb_(this, revents) : EV_INVALID_ARGS;
 }

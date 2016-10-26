@@ -7,15 +7,16 @@
 
 #ifndef EVBASE_H_
 #define EVBASE_H_
-#include <boost/utility.hpp>
+
+#include "lib/def.h"
 
 class ev_watcher;
 typedef int (*CallbackPtr)(ev_watcher *watcher, int revents);
 
-class ev_watcher: public boost::noncopyable {
+class ev_watcher {
 public:
 	ev_watcher() :
-			cb_(NULL)
+			cb_(nullptr)
 	{
 	}
 	;
@@ -32,6 +33,8 @@ public:
 	}
 	virtual int callback(int revents);
 protected:
+	DISALLOW_COPY_AND_ASSIGN(ev_watcher);
+
 	CallbackPtr cb_;
 };
 

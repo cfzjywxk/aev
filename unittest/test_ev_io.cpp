@@ -21,7 +21,7 @@ class testClass: public testing::Test {
 static int func(ev_watcher *watcher, int revents)
 {
 	int ret = EV_SUCCESS;
-	std::cout << "func called" << std::endl << std::cout;
+	std::cout << "func called" << std::endl;
 	return ret;
 }
 

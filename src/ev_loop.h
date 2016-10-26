@@ -7,9 +7,10 @@
 
 #ifndef EV_LOOP_H_
 #define EV_LOOP_H_
-#include <boost/utility.hpp>
 #include <queue>
 #include <unordered_map>
+
+#include "lib/def.h"
 
 class ev_io;
 class anfd;
@@ -18,7 +19,7 @@ class anfd;
  * init_loop() -> ev_io_start()
  * all finished, start run() method
  */
-class ev_loop: public boost::noncopyable {
+class ev_loop {
 public:
 	ev_loop();
 	virtual ~ev_loop();
@@ -28,6 +29,8 @@ public:
 	int ev_io_start(ev_io *event_io);
 
 protected:
+	DISALLOW_COPY_AND_ASSIGN(ev_loop);
+
 	struct process_info {
 		process_info(anfd *theafd, int theevents) :
 				afd(theafd), events(theevents)

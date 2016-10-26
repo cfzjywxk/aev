@@ -9,7 +9,7 @@
 #include <sys/epoll.h>
 #include <assert.h>
 #include "lib/Common.h"
-#include "lib/commonallocator.h"
+#include "lib/malloc/commonallocator.h"
 #include "lib/tblog.h"
 #include "ev_io.h"
 #include "anfd.h"
@@ -52,7 +52,7 @@ int ev_loop::epoll_backend(int &backended_fd, bool &res)
 
 		backend_mintime = 1e-3; /* epoll does sometimes return early, this is just to avoid the worst */
 		epoll_eventmax = 64; /* initial number of events receivable per poll */
-		if ((NULL == (epoll_events = (struct epoll_event *) (tc_malloc(sizeof(struct epoll_event)))))) {
+		if ((nullptr == (epoll_events = (struct epoll_event *) (tc_malloc(sizeof(struct epoll_event)))))) {
 			TBSYS_LOG(ERROR, "alloc %ld mem for epoll_event failed ret=%d\n", sizeof(struct epoll_event),
 					ret);
 		}

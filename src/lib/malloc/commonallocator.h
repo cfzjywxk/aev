@@ -8,8 +8,8 @@
 #ifndef COMMONALLOCATOR_H_
 #define COMMONALLOCATOR_H_
 
-void *tc_malloc(int len);
-void tc_free(void *ptr);
+extern void *tc_malloc(int len);
+extern void tc_free(void *ptr);
 
 #define NEW(type, obj, size) \
 	do { \
