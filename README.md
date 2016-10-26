@@ -1,8 +1,10 @@
 ## simply rewrite of libev in cxx
+
+event loop using epoll for linux
+
 prerequisites:
 - CMAKE 3.6
 - unittest tool:https://github.com/google/googletest
-- boost 1.61 or higher
 - gcc supports c++11 std
 
 ## usage
