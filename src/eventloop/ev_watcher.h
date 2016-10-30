@@ -8,7 +8,7 @@
 #ifndef EVBASE_H_
 #define EVBASE_H_
 
-#include "lib/def.h"
+#include "common/def.h"
 
 class ev_watcher;
 typedef int (*CallbackPtr)(ev_watcher *watcher, int revents);

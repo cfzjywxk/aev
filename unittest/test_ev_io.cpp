@@ -6,10 +6,10 @@
  */
 
 #include <iostream>
-#include <gtest/gtest.h>
 #include <unistd.h>
-#include "ev_io.h"
-#include "lib/tblog.h"
+#include <gtest/gtest.h>
+#include <tbsys/tblog.h>
+#include "eventloop/ev_io.h"
 
 class testClass: public testing::Test {
 	virtual void SetUp()

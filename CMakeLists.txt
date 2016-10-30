@@ -4,7 +4,10 @@ project(aev, CXX)
 ##include dirs
 include_directories(${CMAKE_SOURCE_DIR}/src)
 include_directories(${CMAKE_SOURCE_DIR}/src/lib)
+include_directories(${CMAKE_SOURCE_DIR}/src/common)
+include_directories(${CMAKE_SOURCE_DIR}/src/eventloop)
 include_directories(${CMAKE_SOURCE_DIR}/src/lib/malloc)
+include_directories($ENV{TBLIB_ROOT}/include)
 
 #list include dirs
 message(STATUS "******include dir in this project is******")

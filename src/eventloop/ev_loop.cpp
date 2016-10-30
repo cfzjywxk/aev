@@ -6,14 +6,14 @@
  */
 
 #include "ev_loop.h"
+#include <tbsys/tblog.h>
 #include <sys/epoll.h>
 #include <assert.h>
-#include "lib/Common.h"
+#include "common/Common.h"
 #include "lib/malloc/commonallocator.h"
-#include "lib/tblog.h"
 #include "ev_io.h"
-#include "anfd.h"
-#include "ev_event_mask.h"
+#include "eventloop/anfd.h"
+#include "eventloop/ev_event_mask.h"
 
 ev_loop::ev_loop() :
 		ev_backend_fd_(-1), ev_backended_(false), backend_mintime(0), epoll_events(

@@ -5,12 +5,12 @@
  *      Author: ray
  */
 #include <stdio.h>
-#include <gtest/gtest.h>
 #include <unistd.h>
-#include "ev_io.h"
-#include "ev_loop.h"
-#include "lib/tblog.h"
-#include "ev_event_mask.h"
+#include <gtest/gtest.h>
+#include <tbsys/tblog.h>
+#include "eventloop/ev_io.h"
+#include "eventloop/ev_loop.h"
+#include "eventloop/ev_event_mask.h"
 
 class testClass: public testing::Test {
 	virtual void SetUp()

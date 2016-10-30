@@ -1,5 +1,7 @@
-set(LIB_SRC sampleClass.cpp ev_watcher.cpp ev_io.cpp ev_loop.cpp anfd.cpp)
+set(LIB_SRC sampleClass.cpp)
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/lib")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/common")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/eventloop")
 
 if(1)
   add_library(aev_static STATIC ${LIB_SRC})

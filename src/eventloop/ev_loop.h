@@ -10,7 +10,7 @@
 #include <queue>
 #include <unordered_map>
 
-#include "lib/def.h"
+#include "common/def.h"
 
 class ev_io;
 class anfd;

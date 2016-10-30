@@ -3,9 +3,9 @@
 //
 
 #include <iostream>
+#include <tbsys/tblog.h>
 #include <gtest/gtest.h>
 #include "sampleClass.h"
-#include "lib/tblog.h"
 
 class testClass: public testing::Test {
 	virtual void SetUp()
