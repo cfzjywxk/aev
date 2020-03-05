@@ -2,6 +2,13 @@
 
 event loop using epoll for linux, some c++ playground
 
+do some experiments on
+- event loop
+- network io
+- coroutine/goroutine
+- memory allocation
+- data structures
+
 prerequisites:
 - CMAKE 3.6
 - unittest tool:https://github.com/google/googletest
