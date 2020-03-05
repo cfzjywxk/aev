@@ -1,0 +1,34 @@
+set(LIB_SRC
+  ${LIB_SRC}
+  ${CMAKE_CURRENT_SOURCE_DIR}/bytebuffer.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Cond.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/config.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/CtrlCHandler.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/defaultrunnable.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Exception.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/filequeue.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/filequeuethread.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/fileutil.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Mutex.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Network.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/profiler.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/queuethread.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/RecMutex.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Service.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Shared.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/StaticMutex.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/stringutil.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/tblog.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/tbnetutil.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/tbrwlock.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/TbThread.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/tbtimeutil.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/ThreadException.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/ThreadPool.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Time.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Timer.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Utility.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/WarningBuffer.cpp
+  PARENT_SCOPE
+)
