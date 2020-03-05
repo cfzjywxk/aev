@@ -7,7 +7,7 @@ include_directories(${CMAKE_SOURCE_DIR}/src/lib)
 include_directories(${CMAKE_SOURCE_DIR}/src/common)
 include_directories(${CMAKE_SOURCE_DIR}/src/eventloop)
 include_directories(${CMAKE_SOURCE_DIR}/src/lib/malloc)
-include_directories($ENV{TBLIB_ROOT}/include)
+include_directories(${CMAKE_SOURCE_DIR}/src/deps/tbsys/src)
 
 #list include dirs
 message(STATUS "******include dir in this project is******")
@@ -22,5 +22,3 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -g")
 
 add_subdirectory(src)
 add_subdirectory(unittest)
-
-

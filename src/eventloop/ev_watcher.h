@@ -11,31 +11,31 @@
 #include "common/def.h"
 
 class ev_watcher;
+
 typedef int (*CallbackPtr)(ev_watcher *watcher, int revents);
 
 class ev_watcher {
 public:
-	ev_watcher() :
-			cb_(nullptr)
-	{
-	}
-	;
-	ev_watcher(CallbackPtr ptr) :
-			cb_(ptr)
-	{
-	}
-	;
-	virtual ~ev_watcher();
+  ev_watcher() :
+          cb_(nullptr) {
+  };
 
-	void set_callback(CallbackPtr ptr)
-	{
-		cb_ = ptr;
-	}
-	virtual int callback(int revents);
+  ev_watcher(CallbackPtr ptr) :
+          cb_(ptr) {
+  };
+
+  virtual ~ev_watcher();
+
+  void set_callback(CallbackPtr ptr) {
+    cb_ = ptr;
+  }
+
+  virtual int callback(int revents);
+
 protected:
-	DISALLOW_COPY_AND_ASSIGN(ev_watcher);
+  DISALLOW_COPY_AND_ASSIGN(ev_watcher);
 
-	CallbackPtr cb_;
+  CallbackPtr cb_;
 };
 
 #endif /* EVBASE_H_ */
